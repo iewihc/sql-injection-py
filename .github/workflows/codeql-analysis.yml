@@ -64,7 +64,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: <YOUR_GIST_ID>
+          gistID: 14709728e62608f9135222e342be7c8f
           filename: codeql-badge.json
           label: CodeQL
           message: ${{ steps.codeql-results.outputs.status }}
