@@ -1,4 +1,4 @@
-name: "Extended CodeQL Analysis"
+name: "CodeQL Analysis"
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flask  # 添加您的项目依赖
+          pip install -r requirements.txt
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -47,11 +47,27 @@ jobs:
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{matrix.language}}"
+          output: ${{ github.workspace }}/results
         env:
           CODEQL_ACTION_EXTRA_OPTIONS: '{"database":{"interpret-results":["--max-paths", "10000"]}}'
+
+      - name: List SARIF files
+        run: |
+          echo "Listing potential SARIF file locations:"
+          find ${{ github.workspace }} -name '*.sarif'
+        continue-on-error: true
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         if: success() || failure()
         with:
-          sarif_file: ${{ runner.temp }}/results/python.sarif
+          sarif_file: ${{ github.workspace }}/results/python.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF as artifact
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: sarif-results
+          path: ${{ github.workspace }}/results
+          if-no-files-found: warn
