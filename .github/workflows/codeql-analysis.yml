@@ -48,7 +48,6 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
-          output: ${{ github.workspace }}/results
 
       - name: List SARIF files
         run: |
@@ -56,17 +55,10 @@ jobs:
           find ${{ github.workspace }} -name '*.sarif'
         continue-on-error: true
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        if: success() || failure()
-        with:
-          sarif_file: ${{ github.workspace }}/results/python.sarif
-        continue-on-error: true
-
       - name: Upload SARIF as artifact
         uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
           name: sarif-results
-          path: ${{ github.workspace }}/results
+          path: ${{ github.workspace }}/sarif
           if-no-files-found: warn
