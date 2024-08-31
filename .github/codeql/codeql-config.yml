@@ -1,4 +1,4 @@
-name: "Custom CodeQL Config"
+name: "Stricter CodeQL Config"
 queries:
   - uses: security-and-quality
   - uses: security-extended
@@ -10,6 +10,8 @@ query-filters:
 paths-ignore:
   - "**/tests/**"
   - "**/test/**"
-max-paths-per-analysis: 10000
+packs:
+  - codeql/python-queries
 output:
   sarif-add-snippets: true
+  sarif-add-file-contents: true
