@@ -1,17 +1,25 @@
-import sqlite3
+from flask import Flask
+from flask import request
+from flask import config
+from flask import render_template_string
+app = Flask(__name__)
 
-def get_user(username):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM users WHERE username = '" + username + "'"
-    cursor.execute(query)
-    
-    user = cursor.fetchone()
-    conn.close()
-    return user
+app.config['SECRET_KEY'] = "flag{SSTI_123456}"
+@app.route('/')
+def hello_world():
+    return 'Hello World!'
 
-# 使用示例
-user_input = input("Enter username: ")
-result = get_user(user_input)
-print(result)
+@app.errorhandler(404)
+def page_not_found(e):
+    template = '''
+{%% block body %%}
+    <div class="center-content error">
+        <h1>Oops! That page doesn't exist.</h1>
+        <h3>%s</h3>
+    </div> 
+{%% endblock %%}
+''' % (request.args.get('404_url'))
+    return render_template_string(template), 404
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0',debug=True)
