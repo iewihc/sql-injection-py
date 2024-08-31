@@ -4,8 +4,7 @@ def get_user(username):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
-    # 不安全的查询 - 存在SQL注入漏洞
-    query = f"SELECT * FROM users WHERE username = '{username}'"
+    query = "SELECT * FROM users WHERE username = '" + username + "'"
     cursor.execute(query)
     
     user = cursor.fetchone()
