@@ -11,3 +11,5 @@ paths-ignore:
   - "**/tests/**"
   - "**/test/**"
 max-paths-per-analysis: 10000
+output:
+  sarif-add-snippets: true
