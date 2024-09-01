@@ -60,15 +60,15 @@ jobs:
             echo "status=error" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create CodeQL Badge
-        uses: schneegans/dynamic-badges-action@v1.6.0
-        with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: 14709728e62608f9135222e342be7c8f
-          filename: codeql-badge.json
-          label: CodeQL
-          message: ${{ steps.codeql-results.outputs.status }}
-          color: ${{ steps.codeql-results.outputs.status == 'passed' && 'success' || steps.codeql-results.outputs.status == 'failed' && 'critical' || 'important' }}
+      # - name: Create CodeQL Badge
+      #   uses: schneegans/dynamic-badges-action@v1.6.0
+      #   with:
+      #     auth: ${{ secrets.GIST_SECRET }}
+      #     gistID: 14709728e62608f9135222e342be7c8f
+      #     filename: codeql-badge.json
+      #     label: CodeQL
+      #     message: ${{ steps.codeql-results.outputs.status }}
+      #     color: ${{ steps.codeql-results.outputs.status == 'passed' && 'success' || steps.codeql-results.outputs.status == 'failed' && 'critical' || 'important' }}
 
       - name: Upload SARIF as artifact
         uses: actions/upload-artifact@v4
