@@ -1,7 +1,6 @@
 # sql-injection-py
 
-
-![CodeQL](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/iewihc/14709728e62608f9135222e342be7c8f/raw/codeql-badge.json)
+![CodeQL](https://github.com/iewihc/sql-injection-py/actions/workflows/codeql-analysis.yml/badge.svg)
 
 
 - The code have val.

@@ -1,4 +1,4 @@
-name: "CodeQL"
+name: "CodeQL Analysis"
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -41,11 +41,12 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:python"
+          output: ./results
 
       - name: Check CodeQL results
         id: codeql-results
         run: |
-          SARIF_FILE="${{ github.workspace }}/results/python.sarif"
+          SARIF_FILE="./results/python.sarif"
           if [ -f "$SARIF_FILE" ]; then
             RESULTS=$(jq '.runs[].results | length' "$SARIF_FILE")
             if [ "$RESULTS" -gt 0 ]; then
@@ -60,20 +61,29 @@ jobs:
             echo "status=error" >> $GITHUB_OUTPUT
           fi
 
-      # - name: Create CodeQL Badge
-      #   uses: schneegans/dynamic-badges-action@v1.6.0
-      #   with:
-      #     auth: ${{ secrets.GIST_SECRET }}
-      #     gistID: 14709728e62608f9135222e342be7c8f
-      #     filename: codeql-badge.json
-      #     label: CodeQL
-      #     message: ${{ steps.codeql-results.outputs.status }}
-      #     color: ${{ steps.codeql-results.outputs.status == 'passed' && 'success' || steps.codeql-results.outputs.status == 'failed' && 'critical' || 'important' }}
+      - name: Generate custom badge
+        if: always()
+        run: |
+          if [ "${{ steps.codeql-results.outputs.status }}" = "passed" ]; then
+            echo "https://img.shields.io/badge/CodeQL-Passed-success" > badge.txt
+          elif [ "${{ steps.codeql-results.outputs.status }}" = "failed" ]; then
+            echo "https://img.shields.io/badge/CodeQL-Bugs%20Found-critical" > badge.txt
+          else
+            echo "https://img.shields.io/badge/CodeQL-Error-yellow" > badge.txt
+          fi
 
       - name: Upload SARIF as artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: sarif-results
-          path: ${{ github.workspace }}/results
+          path: ./results
+          if-no-files-found: warn
+
+      - name: Upload badge as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codeql-badge
+          path: badge.txt
           if-no-files-found: warn
