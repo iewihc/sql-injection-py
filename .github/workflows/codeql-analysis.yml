@@ -48,7 +48,7 @@ jobs:
         run: |
           SARIF_FILE="./results/python.sarif"
           if [ -f "$SARIF_FILE" ]; then
-            RESULTS=$(jq '.runs[].results | length' "$SARIF_FILE")
+            RESULTS=$(jq '.runs[0].results | length' "$SARIF_FILE")
             if [ "$RESULTS" -gt 0 ]; then
               echo "CodeQL found $RESULTS potential issue(s)"
               echo "status=failed" >> $GITHUB_OUTPUT
@@ -60,6 +60,12 @@ jobs:
             echo "SARIF file not found"
             echo "status=error" >> $GITHUB_OUTPUT
           fi
+
+      - name: Debug information
+        run: |
+          echo "SARIF file content:"
+          cat ./results/python.sarif
+          echo "CodeQL results status: ${{ steps.codeql-results.outputs.status }}"
 
       - name: Generate custom badge
         if: always()
