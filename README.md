@@ -1,6 +1,6 @@
 # Intentionally Vulnerable Flask Application
 
-![CodeQL](https://img.shields.io/badge/CodeQL-Pending-blue)
+![CodeQL](https://github.com/iewihc/sql-injection-py/actions/workflows/codeql-analysis.yml/badge.svg)
 
 ## Description
 
@@ -30,3 +30,4 @@ The CodeQL badge above shows the current status of the CodeQL analysis for this 
 ## Disclaimer
 
 This code is for educational purposes only. The authors and contributors are not responsible for any misuse or damage caused by this code. Always practice secure coding in real-world applications.
+

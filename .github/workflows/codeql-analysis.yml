@@ -21,15 +21,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set initial status
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
         run: |
-          echo "https://img.shields.io/badge/CodeQL-Pending-blue" > badge.txt
-          sed -i "s|!\[CodeQL\].*|![CodeQL](https://img.shields.io/badge/CodeQL-Pending-blue)|" README.md
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add README.md
-          git commit -m "Set CodeQL status to pending" || echo "No changes to commit"
-          git push
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -41,59 +41,53 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:python"
+          output: ./results
 
       - name: Check CodeQL results
         id: codeql-results
         run: |
-          SARIF_FILE="${{ github.workspace }}/results/python.sarif"
+          SARIF_FILE="./results/python.sarif"
           if [ -f "$SARIF_FILE" ]; then
             RESULTS=$(jq '.runs[0].results | length' "$SARIF_FILE")
-            echo "Total alerts found: $RESULTS"
             if [ "$RESULTS" -gt 0 ]; then
               echo "CodeQL found $RESULTS potential issue(s)"
-              echo "status=bugs" >> $GITHUB_OUTPUT
+              echo "status=fail" >> $GITHUB_OUTPUT
             else
               echo "No issues found by CodeQL"
               echo "status=pass" >> $GITHUB_OUTPUT
             fi
           else
             echo "SARIF file not found"
-            echo "status=error" >> $GITHUB_OUTPUT
+            echo "status=fail" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug information
+        run: |
+          echo "SARIF file content:"
+          cat ./results/python.sarif
+          echo "CodeQL results status: ${{ steps.codeql-results.outputs.status }}"
+
       - name: Generate custom badge
+        if: always()
         run: |
           if [ "${{ steps.codeql-results.outputs.status }}" = "pass" ]; then
             echo "https://img.shields.io/badge/CodeQL-Passed-success" > badge.txt
-          elif [ "${{ steps.codeql-results.outputs.status }}" = "bugs" ]; then
-            echo "https://img.shields.io/badge/CodeQL-Bugs_Found-critical" > badge.txt
-          elif [ "${{ steps.codeql-results.outputs.status }}" = "error" ]; then
-            echo "https://img.shields.io/badge/CodeQL-Error-yellow" > badge.txt
           else
-            echo "https://img.shields.io/badge/CodeQL-Pending-blue" > badge.txt
+            echo "https://img.shields.io/badge/CodeQL-Failed-critical" > badge.txt
           fi
 
-      - name: Upload CodeQL results
+      - name: Upload SARIF as artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: codeql-results
-          path: ${{ github.workspace }}/results
+          name: sarif-results
+          path: ./results
+          if-no-files-found: warn
 
-      - name: Upload badge
+      - name: Upload badge as artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: badge
+          name: codeql-badge
           path: badge.txt
-
-      - name: Update README badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BADGE_URL=$(cat badge.txt)
-          sed -i "s|!\[CodeQL\].*|![CodeQL]($BADGE_URL)|" README.md
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add README.md
-          git commit -m "Update CodeQL badge" || echo "No changes to commit"
-          git push
+          if-no-files-found: warn
